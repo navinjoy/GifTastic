@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>GifTastic</title>
+</head>
+
+<body>
+    <div id='buttonlist' style="background: lightgreen;padding:10px"></div>
+    <div id='addnewbtn'>
+        <form style="background: lightblue;padding:10px;margin:10px 0px">
+            <h3>Add New Movie</h3>
+            <input type="text" id="newbtntext">
+            <input id='newbtn' type="button" value="Add New">
+        </form>
+    </div>
+    <div id='displaygifs'></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+    var movies = ['Robot', ' Baahubali ', 'Dhoom-3', 'spiderman', 'Avengers', 'Hulk', 'Titanic']
+
+    function newMovieButton(moviename) {
+        return $('<button>').attr({ 'class': 'moviebutton', 'name': moviename }).text(moviename).css({ background: 'lightgrey', margin: '2px 5px', 'font-size': 'large', padding: '5px 30px' });
+    }
+
+    function loadGifsOnMovieButtonClick() {
+        $('.moviebutton').on('click', function() {
+            $("#displaygifs").empty();
+            console.log(this.innerText);
+            var searchText = $(this).attr('name').trim();
+            console.log(searchText);
+            var queryURL;
+
+            var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+                searchText + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+            // Performing an AJAX request with the queryURL
+            $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                })
+                // After data comes back from the request
+                .done(function(response) {
+                    console.log(queryURL);
+
+                    console.log(response);
+                    // storing the data from the AJAX request in the results variable
+                    var results = response.data;
+
+                    // Looping through each result item
+                    for (var i = 0; i < results.length; i++) {
+
+                        // Creating and storing a div tag
+                        var movieDiv = $("<div>").css({ width: '40%', float: 'left', padding: '2%' });
+
+                        // Creating a paragraph tag with the result item's rating
+                        var p = $("<p>").text("Rating: " + results[i].rating).css({ width: '33%' });
+
+                        // Creating and storing an image tag
+                        var movieImage = $("<img>");
+                        movieImage.addClass('gif');
+                        // Setting the src attribute of the image to a property pulled off the result item
+                        movieImage.attr("src", results[i].images.fixed_height_still.url);
+                        movieImage.attr("gif-state", 'still'); //still or move
+                        movieImage.attr("gif-still", results[i].images.fixed_height_still.url);
+                        movieImage.attr("gif-move", results[i].images.fixed_height.url);
+                        // Appending the paragraph and image tag to the movieDiv
+                        movieDiv.append(p);
+                        movieDiv.append(movieImage);
+
+                        // Prependng the movieDiv to the HTML page in the "#gifs-appear-here" div
+                        $("#displaygifs").prepend(movieDiv);
+                    }
+                    handleGifClicks();
+                });
+            
+        })
+
+
+    }
+
+    function handleGifClicks() {
+        $('.gif').on('click', function() {
+            if ($(this).attr('gif-state') === 'still') {
+                $(this).attr('src', $(this).attr('gif-move'));
+                $(this).attr('gif-state', 'move');
+            } else {
+                $(this).attr('src', $(this).attr('gif-still'));
+                $(this).attr('gif-state', 'still');
+            }
+        });
+    }
+
+    // Create a new button and append to button list
+    $('#newbtn').on('click', function() {
+        var newmovie = $('#newbtntext').val();
+        movies.push(newmovie);
+        $('#buttonlist').append(newMovieButton(newmovie));
+        loadGifsOnMovieButtonClick();
+    });
+
+
+    movies.forEach(function(item) {
+        $('#buttonlist').append(newMovieButton(item));
+    })
+
+    loadGifsOnMovieButtonClick();
+    handleGifClicks();
+    </script>
+</body>
+
+</html>
